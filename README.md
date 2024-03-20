@@ -116,7 +116,7 @@ class BertEmbeddings(nn.Module):
 $$
 l_i=-log\frac{e^{\frac{sim(h_i,h^+_i)}{\tau}}}{\sum_{j=1}^Ne^{\frac{sim(h_i,h^+_j)}{\tau}}}
 $$
-
+![image-20240320210641783](./src/image-20240320210641783.png)
 $$
 loss = \frac{1}{N}{\sum_{i=1}^N·l_i}
 $$
@@ -191,7 +191,7 @@ $$
 $$
 l_i=-log\frac{e^{\frac{sim(h_i,h^+_i)}{\tau}}}{\sum_{j=1}^N(e^{\frac{sim(h_i,h^+_j)}{\tau}}+e^{\frac{sim(h_i,h^-_j)}{\tau}})}
 $$
-
+![image-20240320210718286](./src/image-20240320210718286.png)
 $$
 loss = \frac{1}{N}{\sum_{i=1}^N·l_i}
 $$
