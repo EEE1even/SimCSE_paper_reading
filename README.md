@@ -110,12 +110,12 @@ class BertEmbeddings(nn.Module):
 
 
 
-### $SimCSE$中无监督学习损失函数的构建
+### $SimCSE$​中无监督学习损失函数的构建
+
 
 $$
 l_i=-log\frac{e^{\frac{sim(h_i,h^+_i)}{\tau}}}{\sum_{j=1}^Ne^{\frac{sim(h_i,h^+_j)}{\tau}}}
 $$
-
 
 $$
 loss = \frac{1}{N}{\sum_{i=1}^N·l_i}
@@ -185,12 +185,12 @@ $$
 
 
 
-### $SimCSE$ 有监督学习的损失函数
+### $SimCSE$​ 有监督学习的损失函数
+
 
 $$
 l_i=-log\frac{e^{\frac{sim(h_i,h^+_i)}{\tau}}}{\sum_{j=1}^N(e^{\frac{sim(h_i,h^+_j)}{\tau}}+e^{\frac{sim(h_i,h^-_j)}{\tau}})}
 $$
-
 
 $$
 loss = \frac{1}{N}{\sum_{i=1}^N·l_i}
