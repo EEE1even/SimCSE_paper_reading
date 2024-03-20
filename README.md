@@ -48,7 +48,7 @@
 
 ![](src/image-20220311172810527.png)
 
-为了方便大家值观的理解，这里给出 $Bert$ 中有关 $dropout$ 的源码，我们在 $BertEmbeddings$ 的编码中很容易就能找到$dropout$ 这一个过程，这是 $BertEmbeddings$ 中自带的： 
+为了方便大家值观的理解，这里给出 $Bert$ 中有关 $dropout$ 的源码，我们在 $BertEmbeddings$ 的编码中很容易就能找到 $dropout$ 这一个过程，这是 $BertEmbeddings$ 中自带的： 
 
 ```python
 class BertEmbeddings(nn.Module):
@@ -73,7 +73,7 @@ class BertEmbeddings(nn.Module):
 
 > 原文摘录：Our *unsupervised* SimCSE simply predicts the input sentence itself with only *dropout* (Srivastavaet al., 2014) used as noise (Figure 1(a)).
 
-第一次理解 “将 $dropout$ 作为噪声添加” 可能不够值观；我们可以站在噪声的角度去体会一下，噪声（$dropout$）就像是在句子后面加了点东西，但是这种"扩增"方式并不会改变或是减少句子本身的意思，这也正是噪声意义的体现！
+第一次理解 “将 $dropout$ 作为噪声添加” 可能不够值观；我们可以站在噪声的角度去体会一下，噪声（ $dropout$ ）就像是在句子后面加了点东西，但是这种"扩增"方式并不会改变或是减少句子本身的意思，这也正是噪声意义的体现！
 
 参考下图，我们可以看到对于原句子来说，我们没有向以前的方法一样剪切或是替换，而是加入噪声；这样最大程度上减少了句子语义的损失：
 
@@ -84,19 +84,19 @@ class BertEmbeddings(nn.Module):
 
 
 
-需要注意的是，这里的“噪声”比较特殊，通过上述的介绍我们知道 $dropout$ $mask$ 本身就会出现在 $BERT$ 模型中，由于$dropout$的随机性，我们只需要将句子传入 $BERT$ 编码器两次，产生的编码就已经是作者文章中陈述的：**经过 $dropout$ $mask$ 添加噪声后的自预测数据**
+需要注意的是，这里的“噪声”比较特殊，通过上述的介绍我们知道 $dropout$ $mask$ 本身就会出现在 $BERT$ 模型中，由于 $dropout$ 的随机性，我们只需要将句子传入 $BERT$ 编码器两次，产生的编码就已经是作者文章中陈述的：**经过 $dropout$ $mask$ 添加噪声后的自预测数据**
 
 
 
 我们通过下面的三张流程图来理解 $dropout$ 的过程
 
-* 首先将 `dropout can prevent neural network from overfitting` 作为句子输入，如果没有$dropout$ ,可以假设产生了 `[11,22,33,44,55,66,77]` 的句向量编码
+* 首先将 `dropout can prevent neural network from overfitting` 作为句子输入，如果没有 $dropout$ ,可以假设产生了 `[11,22,33,44,55,66,77]` 的句向量编码
 
 ![image-20220329191744910](src/image-20220329191744910.png)
 
  
 
-* 由于 $BertEmbeddings$ 中自带的 $dropout$  ，那么我们对句子 `dropout can prevent neural network from overfitting` 进行编码，可以得到一个$dropout$ 处理过的句向量 `[11 25 33 47 55 61 77]`
+* 由于 $BertEmbeddings$ 中自带的 $dropout$  ，那么我们对句子 `dropout can prevent neural network from overfitting` 进行编码，可以得到一个 $dropout$ 处理过的句向量 `[11 25 33 47 55 61 77]`
 
 ![image-20220329191918933](src/image-20220329191918933.png) 
 
@@ -112,9 +112,15 @@ class BertEmbeddings(nn.Module):
 
 ### $SimCSE$中无监督学习损失函数的构建
 
-​																	$l_i=-log\frac{e^{\frac{sim(h_i,h^+_i)}{\tau}}}{\sum_{j=1}^Ne^{\frac{sim(h_i,h^+_j)}{\tau}}}$
+$$
+l_i=-log\frac{e^{\frac{sim(h_i,h^+_i)}{\tau}}}{\sum_{j=1}^Ne^{\frac{sim(h_i,h^+_j)}{\tau}}}
+$$
 
-​																	$loss = \frac{1}{N}{\sum_{i=1}^N·l_i}$
+
+$$
+loss = \frac{1}{N}{\sum_{i=1}^N·l_i}
+$$
+
 
 其中 $h_i$ 和 $h_i^+$ 便是相同句子的不同 $dropout$ ；$N$ 为 $batch$ $size$ 的大小；
 
@@ -181,17 +187,23 @@ class BertEmbeddings(nn.Module):
 
 ### $SimCSE$ 有监督学习的损失函数
 
-​																$l_i=-log\frac{e^{\frac{sim(h_i,h^+_i)}{\tau}}}{\sum_{j=1}^N(e^{\frac{sim(h_i,h^+_j)}{\tau}}+e^{\frac{sim(h_i,h^-_j)}{\tau}})}$
-
-​															   $loss = \frac{1}{N}{\sum_{i=1}^N·l_i}$
-
-其中 $h_i$ 和 $h_i^+$ 是句子和正例标注句子； $h_i$ 和 $h_i^-$ 是句子和负例标注句子；$N$ 为 $batch$ $size$ 的大小；
-
-通过损失函数我们可以很直观的去体会$SimCSE$ 有监督学习的优势，它可以把句子之间的标注数据（正例、负例）进行对比，从而提高原句句向量的表达，这就达到了标注数据之间的交互；上面的缺点我们也提到了：**以前的标注数据是没有任何交互的，这很可能导致当几个句子都含有相同的单词时，产生的句向量会非常相似，但实际上这些句子只是有一些共同的单词而已，句子的意思却大相径庭。** 但由于对比学习的运用，很好的解决了这一个问题，也使得通过 $SimCSE$ 方式训练出来的编码器可以更大程度上去区分伪正例（及那些非常相似但又不同的句子）
+$$
+l_i=-log\frac{e^{\frac{sim(h_i,h^+_i)}{\tau}}}{\sum_{j=1}^N(e^{\frac{sim(h_i,h^+_j)}{\tau}}+e^{\frac{sim(h_i,h^-_j)}{\tau}})}
+$$
 
 
+$$
+loss = \frac{1}{N}{\sum_{i=1}^N·l_i}
+$$
 
-## 思考：为什么用$SimCSE$？
+
+其中 $h_i$ 和 $h_i^+$ 是句子和正例标注句子； $h_i$ 和 $h_i^-$ 是句子和负例标注句子； $N$ 为 $batch$ $size$ 的大小；
+
+通过损失函数我们可以很直观的去体会 $SimCSE$ 有监督学习的优势，它可以把句子之间的标注数据（正例、负例）进行对比，从而提高原句句向量的表达，这就达到了标注数据之间的交互；上面的缺点我们也提到了：**以前的标注数据是没有任何交互的，这很可能导致当几个句子都含有相同的单词时，产生的句向量会非常相似，但实际上这些句子只是有一些共同的单词而已，句子的意思却大相径庭。** 但由于对比学习的运用，很好的解决了这一个问题，也使得通过 $SimCSE$ 方式训练出来的编码器可以更大程度上去区分伪正例（及那些非常相似但又不同的句子）
+
+
+
+## 思考：为什么用 $SimCSE$ ？
 
 * 对比学习框架的引入可以让产生的句子向量包含更丰富的语义（更优秀的句向量）
 
